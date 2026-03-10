@@ -7,24 +7,25 @@ export function parseTimetable(document: HTMLDocument) {
 
   const lessonDict: { [title: string]: Lesson } = {};
 
-  const table = document.querySelector(".maintable")!;
-  const tbody = table.firstElementChild!;
+  const table = document.querySelector(".timetable")!;
+  const thead = table.querySelector("thead")!;
+  const tbody = table.querySelector("tbody")!;
 
+  // Parse header row to get day columns
+  const headerRow = thead.querySelector("tr")!;
+  for (const cell of headerRow.children) {
+    const day = cell.textContent.trim().slice(0, 2).toUpperCase() as Day;
+    const colSpan = cell.getAttribute("colspan") ?? "1";
+    let i = parseInt(colSpan);
+    do {
+      customDays.push(day);
+    } while (--i);
+  }
+
+  // Walk through every body row
   const rows = tbody.children;
 
   for (let row_i = 0; row_i < rows.length; ++row_i) {
-    if (row_i === 0) {
-      // First row (days of the week)
-      for (const cell of rows[row_i].children) {
-        const day = cell.textContent.trim().slice(0, 2).toUpperCase() as Day;
-        const colSpan = cell.getAttribute("colspan") ?? "1";
-        let i = parseInt(colSpan);
-        do {
-          customDays.push(day);
-        } while (--i);
-      }
-    }
-    // Walk through every row
     const row = rows[row_i];
 
     // Time will be set later
@@ -34,34 +35,42 @@ export function parseTimetable(document: HTMLDocument) {
 
     for (let col_i = 0; col_i < cells.length; ++col_i) {
       const day = customDays[col_i]!;
-      // Walk through every cell
       const cell = cells[col_i];
 
-      // Get start time
-      if (col_i === 0) {
-        time = cell.textContent;
+      // Get start time from time-cell
+      if (cell.className.includes("time-cell")) {
+        time = cell.textContent.trim();
         continue;
       }
 
-      // Handle lesson cells
-      if (cell.className.includes("nonemptycell")) {
-        const details = cell.firstElementChild!.firstElementChild!.children;
+      // Handle lesson cells that contain an event
+      const eventDiv = cell.querySelector(".event");
+      if (eventDiv) {
+        const nameDiv = eventDiv.querySelector(".event-name");
+        const infoDivs = eventDiv.querySelectorAll(".event-info");
 
-        const title = details[0].textContent.trim();
+        if (nameDiv && infoDivs.length >= 3) {
+          const title = nameDiv.textContent.trim();
 
-        const lessonRef = lessonDict[title];
+          // Parse time range from the last event-info (e.g. "09:00 - 10:50")
+          const timeInfo = infoDivs[infoDivs.length - 1].textContent.trim();
+          const timeMatch = timeInfo.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+          const startTime = timeMatch ? timeMatch[1] : time;
+          const endTime = timeMatch ? timeMatch[2] : time;
 
-        if (lessonRef === undefined) {
-          const lesson: Lesson = {
-            teachers: details[1].textContent.trim(),
-            location: details[2].textContent.trim(),
-            weeks: details[3].textContent.trim(),
-            day,
-            time: [time],
-          };
-          lessonDict[title] = lesson;
-        } else {
-          lessonRef.time.push(time);
+          const lessonRef = lessonDict[title];
+
+          if (lessonRef === undefined) {
+            const lesson: Lesson = {
+              teachers: infoDivs[0].textContent.trim(),
+              location: infoDivs[1].textContent.trim(),
+              weeks: infoDivs[2].textContent.trim(),
+              day,
+              startTime,
+              endTime,
+            };
+            lessonDict[title] = lesson;
+          }
         }
       }
     }
@@ -75,5 +84,6 @@ export type Lesson = {
   location: string;
   weeks: string;
   day: Day;
-  time: string[];
+  startTime: string;
+  endTime: string;
 };

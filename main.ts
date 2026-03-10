@@ -1,7 +1,7 @@
 import { Calendar, Day, Event, EventConfig, RecurrenceRule } from "./deps.ts";
 import { Lesson } from "./parser.ts";
 
-const WEEK1_FIRST_DAY = [2023, 1, 13];
+const WEEK1_FIRST_DAY = [2026, 2, 2];
 
 const getMondayOfWeek = (n: number) => {
   const [year, month, date] = WEEK1_FIRST_DAY;
@@ -34,10 +34,12 @@ export function genCalendar(lessons: { [title: string]: Lesson }) {
     const lesson = lessons[title];
 
     const desc = lesson.location;
-    const duration = lesson.time.length * 30 * 60;
     const day = lesson.day;
-    const beginTime = lesson.time[0].split(":").map((t) => parseInt(t));
-    // eg. [11:00, 11:30, 12:00] => [11,0]
+    const beginTime = lesson.startTime.split(":").map((t) => parseInt(t));
+    const endTimeParts = lesson.endTime.split(":").map((t) => parseInt(t));
+    const duration =
+      (endTimeParts[0] * 3600 + endTimeParts[1] * 60) -
+      (beginTime[0] * 3600 + beginTime[1] * 60);
 
     const timeSinceMonday =
       (getDayCode(day) * 86400 + beginTime[0] * 3600 + beginTime[1] * 60) * 1e3;
@@ -60,7 +62,7 @@ export function genCalendar(lessons: { [title: string]: Lesson }) {
         until: weekDuration.length >= 2
           ? new Date(
             firstMonday.getTime() +
-              86400 * 7e3 * (weekDuration[1] - weekDuration[0] + 1),
+            86400 * 7e3 * (weekDuration[1] - weekDuration[0] + 1),
           )
           : new Date(firstMonday.getTime() + 86400 * 7e3),
       };
