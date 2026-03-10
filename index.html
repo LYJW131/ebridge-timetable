@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e-Bridge 课表转换器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        /* Fix for iOS date input rendering */
+        input[type="date"] {
+            min-height: 3.5rem;
+            -webkit-appearance: none;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-[#0f172a] text-slate-200 min-h-screen flex items-center justify-center p-4 font-sans selection:bg-indigo-500/30">
+    <!-- Background Decoration -->
+    <div class="fixed inset-0 overflow-hidden -z-10">
+        <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-indigo-500/10 blur-[120px]"></div>
+        <div class="absolute top-[20%] -right-[10%] w-[30%] h-[50%] rounded-full bg-blue-600/10 blur-[120px]"></div>
+        <div class="absolute -bottom-[10%] left-[20%] w-[50%] h-[30%] rounded-full bg-purple-500/10 blur-[120px]"></div>
+    </div>
+
+    <div class="w-full max-w-lg">
+        <div class="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl shadow-2xl p-8 md:p-10 space-y-8">
+            <header class="text-center space-y-2">
+                <h1
+                    class="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                    e-Bridge Timetable
+                </h1>
+                <p class="text-slate-400 text-sm font-medium">XJTLU e-Bridge 课表转换为 ics</p>
+            </header>
+
+            <div class="space-y-6">
+                <!-- Date Input -->
+                <div class="group space-y-2">
+                    <label for="startDate"
+                        class="block text-xs font-bold uppercase tracking-widest text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+                        第一周周一日期
+                    </label>
+                    <div class="relative overflow-hidden rounded-2xl">
+                        <input type="date" id="startDate" value="2026-03-02"
+                            class="w-full bg-slate-800/50 border border-white/5 rounded-2xl px-5 py-4 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all placeholder:text-slate-600 box-border"
+                            required>
+                    </div>
+                    <p class="text-[11px] text-slate-500 px-1 italic">例如: 2026-03-02 (有课的第一个周一)</p>
+                </div>
+
+                <!-- Hash ID Input -->
+                <div class="group space-y-2">
+                    <label for="hashId"
+                        class="block text-xs font-bold uppercase tracking-widest text-slate-500 group-focus-within:text-blue-400 transition-colors">
+                        Timetable Hash ID
+                    </label>
+                    <input type="text" id="hashId" placeholder="粘贴您的 Hash ID..."
+                        class="w-full bg-slate-800/50 border border-white/5 rounded-2xl px-5 py-4 text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all placeholder:text-slate-500 box-border">
+                    <p class="text-[11px] text-slate-500 px-1">从接口请求中获取的 ID，例如：5F58...</p>
+                </div>
+
+                <!-- Action Button -->
+                <div class="pt-4">
+                    <button id="generateBtn" onclick="process()"
+                        class="relative w-full group overflow-hidden bg-gradient-to-br from-indigo-600 to-blue-700 hover:from-indigo-500 hover:to-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all duration-200">
+                        <span class="relative z-10 flex items-center justify-center gap-2">
+                            <span>生成并导出日历</span>
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+
+                <!-- Status Info -->
+                <div id="statusMsg" class="hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div class="flex items-center gap-3 p-4 rounded-2xl text-sm font-medium">
+                        <div id="statusIcon" class="flex-shrink-0"></div>
+                        <span id="statusText"></span>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="pt-4 border-t border-white/5 text-center space-y-3">
+                <p class="text-[10px] text-slate-600 uppercase tracking-widest font-semibold">LYJW 2026</p>
+                <div class="flex justify-center">
+                    <a href="https://github.com/LYJW131/ebridge-timetable" target="_blank" rel="noopener noreferrer"
+                        class="text-slate-500 hover:text-indigo-400 transition-colors flex items-center gap-1.5 text-xs font-medium">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.041-1.416-4.041-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                        </svg>
+                        <span>GitHub</span>
+                    </a>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        function showStatus(msg, type = 'info') {
+            const container = document.getElementById('statusMsg');
+            const icon = document.getElementById('statusIcon');
+            const text = document.getElementById('statusText');
+
+            container.classList.remove('hidden');
+            const innerDiv = container.firstElementChild;
+            innerDiv.className = "flex items-center gap-3 p-4 rounded-2xl text-sm font-medium ";
+
+            if (type === 'error') {
+                innerDiv.classList.add('bg-red-500/10', 'text-red-400', 'border', 'border-red-500/20');
+                icon.innerHTML = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>';
+            } else if (type === 'success') {
+                innerDiv.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border', 'border-emerald-500/20');
+                icon.innerHTML = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>';
+            } else {
+                innerDiv.classList.add('bg-indigo-500/10', 'text-indigo-400', 'border', 'border-indigo-500/20');
+                icon.innerHTML = '<svg class="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+            }
+            text.textContent = msg;
+        }
+
+        function parseUTC(timeStr) { return new Date(timeStr).getTime(); }
+
+        function formatDateStr(timeMs) {
+            const d = new Date(timeMs);
+            const pad = (n) => n.toString().padStart(2, '0');
+            return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}`;
+        }
+
+        function generateICS(items, startDateStr) {
+            const firstMonday = new Date(startDateStr + "T00:00:00Z").getTime();
+            let icsLines = [
+                "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//peron/simple_ics//EN", "METHOD:PUBLISH"
+            ];
+
+            items.forEach(item => {
+                let title = item.name || "Unnamed Event";
+                let dayCode = parseInt(item.scheduledDay);
+                let startUTC = parseUTC(item.startTime);
+                let endUTC = parseUTC(item.endTime);
+
+                let startBJT = startUTC + 8 * 3600 * 1000;
+                let endBJT = endUTC + 8 * 3600 * 1000;
+                let durationSec = Math.floor((endBJT - startBJT) / 1000);
+
+                let startBJTDate = new Date(startBJT);
+                let timeSinceMondaySec = dayCode * 86400 + startBJTDate.getUTCHours() * 3600 + startBJTDate.getUTCMinutes() * 60 + startBJTDate.getUTCSeconds();
+
+                let weeksStr = String(item.weekPattern || "");
+                let weeks = [];
+                weeksStr.split(",").forEach(w => {
+                    let parts = w.match(/\d+/g);
+                    if (parts && parts.length > 0) weeks.push(parts.map(Number));
+                });
+
+                weeks.forEach(weekDuration => {
+                    let firstMondayOfWeek = firstMonday + (weekDuration[0] - 1) * 7 * 86400 * 1000;
+                    let untilDate = weekDuration.length >= 2
+                        ? firstMondayOfWeek + 7 * 86400 * 1000 * (weekDuration[1] - weekDuration[0] + 1)
+                        : firstMondayOfWeek + 7 * 86400 * 1000;
+
+                    let beginDate = firstMondayOfWeek + timeSinceMondaySec * 1000;
+                    let endDate = beginDate + durationSec * 1000;
+
+                    let uid = self.crypto?.randomUUID?.() || (Math.random().toString(36).substring(2) + Date.now().toString(36));
+                    let dtstamp = formatDateStr(Date.now() + 8 * 3600 * 1000);
+
+                    icsLines.push("BEGIN:VEVENT");
+                    icsLines.push("UID:" + uid, "DTSTAMP:" + dtstamp, "DTSTART:" + formatDateStr(beginDate), "DTEND:" + formatDateStr(endDate), "SUMMARY:" + title);
+                    if (item.location) icsLines.push("LOCATION:" + item.location.trim());
+                    if (item.staff) icsLines.push("DESCRIPTION:" + item.staff);
+                    icsLines.push("RRULE:FREQ=WEEKLY;UNTIL=" + formatDateStr(untilDate));
+                    icsLines.push("BEGIN:VALARM", "TRIGGER:-PT30M", "ACTION:DISPLAY", "DESCRIPTION:" + title + " will start in 30 minutes", "END:VALARM");
+                    icsLines.push("END:VEVENT");
+                });
+            });
+
+            icsLines.push("END:VCALENDAR");
+            return icsLines.join("\r\n") + "\r\n";
+        }
+
+        async function process() {
+            const startDate = document.getElementById('startDate').value;
+            const hashId = document.getElementById('hashId').value.trim();
+
+            if (!startDate) return showStatus("请选择起始周一日期", "error");
+            if (!hashId) return showStatus("请输入 Hash ID", "error");
+
+            showStatus("正在拉取课表数据...");
+            try {
+                const url = `https://timetableplus.xjtlu.edu.cn/ptapi/api/enrollment/hash/${hashId}/activity`;
+                const rep = await fetch(url);
+                if (!rep.ok) throw new Error("API 请求失败");
+                const items = await rep.json();
+
+                if (!Array.isArray(items)) throw new Error("数据格式错误");
+
+                showStatus("正在生成并导出...");
+                const ics = generateICS(items, startDate);
+                const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = "timetable.ics";
+                link.click();
+
+                showStatus(`导出成功！共处理 ${items.length} 个项目`, "success");
+            } catch (err) {
+                showStatus(err.message === "Failed to fetch" ? "请求被阻止 (请检查网络或 Hash ID)" : err.message, "error");
+            }
+        }
+    </script>
+</body>
+
+</html>

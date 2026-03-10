@@ -1,43 +1,40 @@
-# e-Bridge Timetable to .ics file
+# e-Bridge Timetable to .ics File
 
-### Installation
+An elegant and minimalist tool to convert XJTLU e-Bridge timetables into standard `.ics` calendar files.
 
-1. Install Python 3
-2. Install dependencies:
-   ```bash
-   pip3 install -r requirements.txt
-   ```
+## Online Usage (Recommended)
 
-### Basic Usage
+The easiest way to use this tool without installing any dependencies:
 
-#### Mode A: Via Timetable Hash ID (Recommended)
+**[https://timetable2ics.lyjw131.com/](https://timetable2ics.lyjw131.com/)**
 
-1. Open your [XJTLU e-Bridge Timetable](https://ebridge.xjtlu.edu.cn/) page.
-2. Open the browser **Developer Tools** (Right-click > **Inspect**, or press `F12` / `Ctrl+Shift+I` on Windows/Linux, `Cmd+Option+I` on Mac).
-3. Switch to the **Network** tab and refresh the page (Press `F5` / `Cmd+R`).
-4. Look for a Fetch/XHR request with a URL like:
-   `https://timetableplus.xjtlu.edu.cn/ptapi/api/enrollment/hash/[TIMETABLE_ID]/activity?start=1&end=13`
-5. Copy the `[TIMETABLE_ID]` portion (the long string).
-6. Run the script:
-   ```bash
-   python3 main.py --id [HASH_ID] -s [START_DATE]
-   ```
-   *Replace `[START_DATE]` with the first Monday of the semester. Example: `2026-03-02`*
+---
 
-#### Mode B: Via Local JSON File
+## Local CLI Usage (Python)
 
-1. Follow steps 1-4 above to find the same Fetch/XHR request.
-2. Right-click the request and select **Copy** > **Copy response** (or click the request and copy the JSON from the **Response** tab).
-3. Save the response content as `input.json`.
-4. Run the script:
-   ```bash
-   python3 main.py --file input.json -s [START_DATE]
-   ```
+If you prefer running the script locally, follow these steps:
 
-### Advanced Usage
-
-Check `timetable.ics` in the folder. You can also specify the output file name:
-
+### 1. Installation
+Ensure you have Python 3 installed, then install the dependencies:
 ```bash
-python3 main.py --id [HASH_ID] -s 2026-03-02 -o my_calendar.ics
+pip3 install -r requirements.txt
 ```
+
+### 2. Get Timetable Hash ID
+1. Open your [XJTLU e-Bridge Timetable](https://ebridge.xjtlu.edu.cn/) page.
+2. Open the browser **Developer Tools** (F12 or Right-click -> Inspect).
+3. Switch to the **Network** tab and refresh the page (F5).
+4. Look for a Fetch/XHR request ending with `activity?start=1&end=13`.
+5. Extract the `[HASH_ID]` part from the request URL (a long string of characters).
+
+### 3. Run Conversion
+```bash
+python3 main.py --id [HASH_ID] -s 2026-03-02
+```
+*Note: `-s` is the date of the first Monday of the semester.*
+
+---
+
+## Project Structure
+- `index.html`: Web version implemented in pure JavaScript.
+- `main.py`: Core logic implemented in Python.
