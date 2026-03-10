@@ -1,6 +1,31 @@
 import { Calendar, Day, Event, EventConfig, RecurrenceRule } from "./deps.ts";
 import { Lesson } from "./parser.ts";
 
+interface LocationEventConfig extends EventConfig {
+  location?: string;
+}
+
+class LocationEvent extends Event {
+  private location?: string;
+
+  constructor(config: LocationEventConfig) {
+    super(config);
+    this.location = config.location;
+  }
+
+  toLines() {
+    const lines = super.toLines();
+    if (this.location) {
+      // Insert LOCATION after SUMMARY
+      const summaryIdx = lines.findIndex(([key]: [string, ...unknown[]]) => key === "SUMMARY");
+      if (summaryIdx !== -1) {
+        lines.splice(summaryIdx + 1, 0, ["LOCATION", this.location]);
+      }
+    }
+    return lines;
+  }
+}
+
 const WEEK1_FIRST_DAY = [2026, 2, 2];
 
 const getMondayOfWeek = (n: number) => {
@@ -33,7 +58,7 @@ export function genCalendar(lessons: { [title: string]: Lesson }) {
   for (const title in lessons) {
     const lesson = lessons[title];
 
-    const desc = lesson.location;
+    const location = lesson.location;
     const day = lesson.day;
     const beginTime = lesson.startTime.split(":").map((t) => parseInt(t));
     const endTimeParts = lesson.endTime.split(":").map((t) => parseInt(t));
@@ -67,10 +92,10 @@ export function genCalendar(lessons: { [title: string]: Lesson }) {
           : new Date(firstMonday.getTime() + 86400 * 7e3),
       };
 
-      const cfg: EventConfig = {
+      const cfg: LocationEventConfig = {
         title,
         beginDate: new Date(firstMonday.getTime() + timeSinceMonday),
-        desc,
+        location,
         duration,
         rrule,
         alarm: {
@@ -79,7 +104,7 @@ export function genCalendar(lessons: { [title: string]: Lesson }) {
         },
       };
 
-      const evt = new Event(cfg);
+      const evt = new LocationEvent(cfg);
 
       events.push(evt);
     }
