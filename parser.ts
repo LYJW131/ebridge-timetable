@@ -34,7 +34,6 @@ export function parseTimetable(document: HTMLDocument) {
     const cells = row.children;
 
     for (let col_i = 0; col_i < cells.length; ++col_i) {
-      const day = customDays[col_i]!;
       const cell = cells[col_i];
 
       // Get start time from time-cell
@@ -42,6 +41,11 @@ export function parseTimetable(document: HTMLDocument) {
         time = cell.textContent.trim();
         continue;
       }
+
+      // Use data-day attribute to determine the day of week
+      const dayAttr = cell.getAttribute("data-day");
+      if (!dayAttr) continue;
+      const day = dayAttr.slice(0, 2).toUpperCase() as Day;
 
       // Handle lesson cells that contain an event
       const eventDiv = cell.querySelector(".event");
