@@ -141,11 +141,12 @@ def gen_calendar(lessons: dict, first_monday: datetime.datetime) -> Calendar:
         
         time_since_monday_sec = get_day_code(day) * 86400 + btime[0] * 3600 + btime[1] * 60
         
-        weeks_str = lesson["weeks"][5:]
+        weeks_str = lesson["weeks"]
         weeks = []
         for week_str in weeks_str.split(","):
-            parts = [int(x.strip()) for x in week_str.strip().split("-")]
-            weeks.append(parts)
+            parts = [int(x) for x in re.findall(r'\d+', week_str)]
+            if parts:
+                weeks.append(parts)
             
         for week_duration in weeks:
             first_monday_of_week = get_monday_of_week(first_monday, week_duration[0])
