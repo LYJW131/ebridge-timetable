@@ -1,38 +1,27 @@
 # e-Bridge Timetable to .ics file
 
+### Installation
+
+1. Install Python 3
+2. Install dependencies:
+   ```bash
+   pip3 install -r requirements.txt
+   ```
+
 ### Basic Usage
 
-1. Install deno
-2. Download source code
-3. Prepare the .html file of e-bridge timetable and rename it to `XJTLU e-Bridge.html`
-4. `deno test -A tests.ts`
-5. Check `test.ics` in the folder
-
-or
-
-1. Install deno
-2. Download the source code
-3. `deno run -A cli.ts`
-
-Tip: `control + C` to force quit cli
+1. Prepare the .html file of e-bridge timetable and rename it to `e-Bridge.html`
+2. Run the script:
+   ```bash
+   python3 main.py -s [START_DATE]
+   ```
+   *Replace `[START_DATE]` with the first Monday of the semester. Example: `2026-03-02`*
+3. Check `timetable.ics` in the folder
 
 ### Advanced Usage
 
-```typescript
-import { DOMParser, genCalendar, parseTimetable } from "https://deno.land/x/ebridge_timetable_parser@1.1.2/mod.ts";
+You can safely specify both input file path and output file name:
 
-const document = new DOMParser().parseFromString(
-  Deno.readTextFileSync('XJTLU e-Bridge.html').toString(),
-  'text/html'
-)!;
-
-const lessons = parseTimetable(document);
-
-console.table(lessons);
-
-const calendar = genCalendar(lessons);
-
-console.log(calendar.toLines());
-
-Deno.writeTextFileSync('test.ics', calendar.toString());
+```bash
+python3 main.py -i "My Timetable.html" -s 2026-03-02 -o my_calendar.ics
 ```
