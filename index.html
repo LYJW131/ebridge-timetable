@@ -59,9 +59,9 @@
                         class="block text-xs font-bold uppercase tracking-widest text-slate-500 group-focus-within:text-blue-400 transition-colors">
                         Timetable Hash ID
                     </label>
-                    <input type="text" id="hashId" placeholder="粘贴您的 Hash ID..."
+                    <input type="text" id="hashId" placeholder="粘贴您的课程表 ID..."
                         class="w-full bg-slate-800/50 border border-white/5 rounded-2xl px-5 py-4 text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all placeholder:text-slate-500 box-border">
-                    <p class="text-[11px] text-slate-500 px-1">从接口请求中获取的 ID，例如：5F58...</p>
+                    <p class="text-[11px] text-slate-500 px-1">获取方式参考下方 GitHub 页面</p>
                 </div>
 
                 <!-- Action Button -->
@@ -202,7 +202,7 @@
                 if (!rep.ok) throw new Error("API 请求失败");
                 const items = await rep.json();
 
-                if (!Array.isArray(items)) throw new Error("数据格式错误");
+                if (!Array.isArray(items) || items.length === 0) throw new Error("无效的 Hash ID (未找到课程数据)");
 
                 showStatus("正在生成并导出...");
                 const ics = generateICS(items, startDate);
