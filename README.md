@@ -16,7 +16,7 @@ Whether you use the online tool or the local script, you first need to get your 
 
 ### Online Usage (Recommended)
 Just paste your Hash ID into the web interface:
-**[https://timetable2ics.lyjw131.com/](https://timetable2ics.lyjw131.com/)**
+**[https://lyjw131.github.io/ebridge-timetable/](https://lyjw131.github.io/ebridge-timetable/)**
 
 ### Local CLI Usage (Python)
 If you prefer running it locally:
